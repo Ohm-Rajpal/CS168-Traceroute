@@ -150,7 +150,7 @@ def string_formatter(buf, start, stop, step=8):
     Helper function to format strings properly. Assuming step size is 8 because 8 bits in a byte.
     Also assuming buffer is parsed prior to inputting.
     """
-    return '.'.join([str(int(buf[start + i: start + i + step], 2)) for i in range(0, stop, step)])
+    return '.'.join([str(int(buf[start + i: start + i + step], 2)) for i in range(0, stop - start, step)])
 
 if __name__ == '__main__':
     args = util.parse_args()
