@@ -139,11 +139,10 @@ def traceroute(sendsock: util.Socket, recvsock: util.Socket, ip: str) \
                 buffer, address = recvsock.recvfrom()
                 ipv4_obj = IPv4(buffer)
 
-                # if ICMP detected, check if we terminate here
+                # if ICMP detected, check if we terminate here in case we have an unreachable port
                 if ipv4_obj.proto == 1: # protocol equals 1 when ICMP, 17 when UDP
                     icmp_obj = ICMP(buffer[ipv4_obj.header_len:])
-
-                    if icmp_obj.type == 3 and icmp_obj.code == 3: # both dst and dst port unreachable
+                    if icmp_obj.type == 3: # unreachable port at the destination, terminate traceroute
                         temp.append(address[0])
                         ans.append(temp)
                         util.print_result(temp, ttl)
@@ -153,7 +152,6 @@ def traceroute(sendsock: util.Socket, recvsock: util.Socket, ip: str) \
                 if address[0] not in ips_found:
                     ips_found.add(address[0])
                     temp.append(address[0])
-                    # print(f'found {address[0]}')
 
         util.print_result(temp, ttl)
         ans.append(temp)
