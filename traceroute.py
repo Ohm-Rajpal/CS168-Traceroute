@@ -124,20 +124,40 @@ def traceroute(sendsock: util.Socket, recvsock: util.Socket, ip: str) \
     routers were found, the ith list can be empty.  If `ip` is discovered, it
     should be included as the final element in the list.
     """
+    ans = []
 
-    # TODO Add your implementation
-    # for ttl in range(1, TRACEROUTE_MAX_TTL+1):
-    #     util.print_result([], ttl)
-    # return []
-    sendsock.set_ttl(30)
-    sendsock.sendto('TEST'.encode(), (ip, TRACEROUTE_PORT_NUMBER))
+    for ttl in range(1, TRACEROUTE_MAX_TTL + 1):
+        ips_found = set()
+        temp = []
 
-    if recvsock.recv_select():
-        buf, address = recvsock.recvfrom()
-        print(f'packet bytes is {buf.hex()}')
-        print(f'object is {IPv4(buf)}')
+        sendsock.set_ttl(ttl)
 
-    return []
+        for i in range(PROBE_ATTEMPT_COUNT):
+            sendsock.sendto('meow'.encode(), (ip, TRACEROUTE_PORT_NUMBER))
+
+            if recvsock.recv_select():
+                buffer, address = recvsock.recvfrom()
+                ipv4_obj = IPv4(buffer)
+
+                # if ICMP detected, check if we terminate here
+                if ipv4_obj.proto == 1: # protocol equals 1 when ICMP, 17 when UDP
+                    icmp_obj = ICMP(buffer[ipv4_obj.header_len:])
+
+                    if icmp_obj.type == 3 and icmp_obj.code == 3: # both dst and dst port unreachable
+                        temp.append(address[0])
+                        ans.append(temp)
+                        util.print_result(temp, ttl)
+                        return ans
+
+                # do not add ips already found in the current sublist
+                if address[0] not in ips_found:
+                    ips_found.add(address[0])
+                    temp.append(address[0])
+                    # print(f'found {address[0]}')
+
+        util.print_result(temp, ttl)
+        ans.append(temp)
+    return ans
    
 def bitstring_convert(buffer):
     """
