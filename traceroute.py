@@ -49,8 +49,8 @@ class IPv4:
         self.ttl = int(buf[64:72], 2)
         self.proto = int(buf[72:80], 2)
         self.cksum = int(buf[80:96], 2)
-        self.src = buf[96:128]
-        self.dst = buf[128:160]
+        self.src = string_formatter(buf, 96, 128, 8)
+        self.dst = string_formatter(buf, 128, 160, 8)
 
     def __str__(self) -> str:
         return f"IPv{self.version} (tos 0x{self.tos:x}, ttl {self.ttl}, " + \
@@ -145,6 +145,12 @@ def bitstring_convert(buffer):
     """
     return ''.join(format(byte, '08b') for byte in [*buffer])
 
+def string_formatter(buf, start, stop, step=8):
+    """
+    Helper function to format strings properly. Assuming step size is 8 because 8 bits in a byte.
+    Also assuming buffer is parsed prior to inputting.
+    """
+    return '.'.join([str(int(buf[start + i: start + i + step], 2)) for i in range(0, stop, step)])
 
 if __name__ == '__main__':
     args = util.parse_args()
